@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -11,18 +10,25 @@ import (
 	"github.com/asadbek21coder/todo-app/pkg/repository"
 	"github.com/asadbek21coder/todo-app/pkg/service"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 func main() {
+	//  logrus - for logging messages in format JSON
+	logrus.SetFormatter(new(logrus.JSONFormatter))
+
+	// initialize configs
 	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing configs: %s", err.Error())
+		logrus.Fatalf("error initializing configs: %s", err.Error())
 	}
 
+	// Load godotenv for getting password from .env file
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("error loading env variables: %s", err.Error())
+		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
 
+	//  getting db postgres
 	db, err := repository.NewPostgresDB(repository.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
@@ -33,15 +39,18 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatalf("failed to initialize db: %s", err.Error())
+		logrus.Fatalf("failed to initialize db: %s", err.Error())
 	}
+
+	//
 	repos := repository.NewRepository(db)
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 
+	// getting server and run from server.go
 	srv := new(todo.Server)
-	if err := srv.Run(viper.GetString("8080"), handlers.InitRoutes()); err != nil {
-		log.Fatalf("error occured while running http server: %s", err.Error())
+	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
+		logrus.Fatalf("error occured while running http server: %s", err.Error())
 	}
 }
 
