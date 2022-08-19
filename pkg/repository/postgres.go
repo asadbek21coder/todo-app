@@ -9,7 +9,7 @@ import (
 const (
 	usersTable      = "users"
 	todoListTable   = "todo_lists"
-	userListsTable  = "user_lists"
+	userListsTable  = "users_lists"
 	todoItemsTable  = "todo_items"
 	listsItemsTable = "lists_items"
 )
